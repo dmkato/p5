@@ -3,7 +3,6 @@ function Circle(x, y, color) {
   this.x = x;
   this.y = y;
   this.r = 1;
-  this.weight = 0.5;
   this.color = color;
   this.isGrowing = true;
 }
@@ -19,8 +18,9 @@ Circle.prototype.draw = function() {
 /* Increases radius of circle */
 Circle.prototype.grow = function() {
    if (this.isGrowing) {
-      this.r += 0.01;
+      this.r += 0.1;
    }
+   return this;
 }
 
 /* Returns true if circle touches the edge of the screen */

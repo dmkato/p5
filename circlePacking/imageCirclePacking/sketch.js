@@ -1,6 +1,71 @@
 let circles = [];
-const fileName = "flan.jpg";
+let activeCircles = [];
 let img;
+const fileName = "flan.jpg";
+
+const addCircles = (num) => {
+   const range = Array.from(Array(num).keys());
+   range.map(() => {
+      const c = newCircle();
+      c ? circles.push(c) : null;
+   });
+};
+
+const isTouchingOtherCircle = (circle) => {
+   const isTouchingOne = (other) => {
+      var d = dist(circle.x, circle.y, other.x, other.y);
+      return (circle == other) || !(d < circle.r + other.r)
+   };
+
+   return !circles.every(isTouchingOne);
+}
+
+const isTouching = (circle) => {
+   if (!circle.isGrowing) {
+      return false;
+   } else if (circle.isTouchingScreenEdge()) {
+      circle.isGrowing = false;
+      return true;
+   } else if (isTouchingOtherCircle(circle)) {
+      circle.isGrowing = false;
+      return true;
+   }
+}
+
+const generateValidCoords = () => {
+   const x = random(width);
+   const y = random(height);
+   const isValid = (circ) => dist(x, y, circ.x, circ.y) >= circ.r + 1;
+
+   if (circles.every(isValid)) {
+      return {x, y};
+   } else {
+      return null;
+   }
+}
+
+const newCircle = () => {
+   const coords = generateValidCoords();
+   if (coords) {
+      const c = getColorFromPixel(coords.x, coords.y);
+      return new Circle(coords.x, coords.y, c);
+   }
+   return null;
+};
+
+
+const getColorFromPixel = (x, y) => {
+   const index = ((Math.floor(y) * img.width) + Math.floor(x)) * 4;
+   const r = img.pixels[index];
+   const g = img.pixels[index + 1];
+   const b = img.pixels[index + 2];
+   const a = img.pixels[index + 3];
+   return color(r, g, b, a);
+}
+
+function preload() {
+   img = loadImage(fileName);
+}
 
 function setup() {
    img.loadPixels();
@@ -11,87 +76,9 @@ function setup() {
 }
 
 function draw() {
-   background(31);
-   addCircles(5);
-   circles.filter((circle) => !isTouching(circle))
+   background(81);
+   addCircles(10);
+   circles.map((circle) => circle.draw())
+      .filter((circle) => !isTouching(circle))
       .map((circle) => circle.grow());
-   circles.map((circle) => circle.draw());
-}
-
-function preload() {
-   img = loadImage(fileName);
-}
-
-function addCircles(total){
-   var count = 0;
-   var attempts = 0;
-
-   while (count < total) {
-      var c = newCircle();
-      if(c != null) {
-         circles.push(c);
-         count++;
-      }
-      attempts++;
-      if (attempts > 10000) {
-         noLoop();
-         console.log("FINISHED");
-         break;
-      }
-   }
-}
-
-function isTouching(circle) {
-   if (circle.isGrowing) {
-      if (circle.isTouchingScreenEdge()) {
-         circle.isGrowing = false;
-         return true;
-      } else {
-         circles.map((other) => {
-            if(circle != other) {
-               var d = dist(circle.x, circle.y, other.x, other.y);
-               if (d < circle.r + other.r) {
-                  circle.isGrowing = false;
-                  return true;
-               }
-            }
-         });
-
-      }
-   }
-   return false;
-}
-
-function newCircle() {
-   var x = random(width);
-   var y = random(height);
-
-   // Check if circle is inside another
-   var valid = true;
-   circles.forEach((circle) => {
-      var d = dist(x, y, circle.x, circle.y);
-      if(d < circle.r + 2) {
-         valid = false;
-      }
-   });
-
-   // If so, return it
-   if (valid) {
-      c = getColorFromPixel(x, y);
-      return new Circle(x, y, c);
-   } else {
-      return null;
-   }
-};
-
-
-function getColorFromPixel(x, y) {
-   var index = ((Math.floor(y) * img.width) + Math.floor(x)) * 4;
-
-   var r = img.pixels[index];
-   var g = img.pixels[index + 1];
-   var b = img.pixels[index + 2];
-   var a = img.pixels[index + 3];
-
-   return color(r, g, b, a);
 }
